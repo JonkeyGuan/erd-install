@@ -1,0 +1,22 @@
+apiVersion: infinispan.org/v1
+kind: Infinispan
+metadata:
+  name: {{ datagrid_application_name }}
+  labels:
+    app.kubernetes.io/part-of: datatier
+spec:
+  replicas: {{ number_of_replicas }}
+  container:
+    extraJvmOpts: "-XX:NativeMemoryTracking=summary"
+    cpu: "{{ total_container_cpu }}"
+    memory: {{ total_container_memory }}
+#  expose:
+#    type: Route
+  service:
+    type: Cache
+  security:
+    endpointSecretName: {{ datagrid_connect_secret }}
+#    endpointEncryption:
+#      type: service
+#      certServiceName: service.beta.openshift.io
+#      certSecretName: datagrid-tls-secret

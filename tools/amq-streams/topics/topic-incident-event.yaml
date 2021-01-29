@@ -1,0 +1,11 @@
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: topic-incident-event
+  namespace: {{ namespace_kafka_cluster }}
+  labels:
+    strimzi.io/cluster: {{ kafka_cluster }}
+spec:
+  partitions: 15
+  replicas: 3
+  config: {}

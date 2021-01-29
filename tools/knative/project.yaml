@@ -1,0 +1,9 @@
+apiVersion: project.openshift.io/v1
+kind: Project
+metadata:
+  name: {{ knative_serving_namespace }}
+---
+apiVersion: project.openshift.io/v1
+kind: Project
+metadata:
+  name: {{ knative_eventing_namepace }}
