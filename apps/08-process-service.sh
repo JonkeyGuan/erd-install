@@ -86,7 +86,6 @@ oc -n ${namespace} create configmap ${logging_configmap} \
 # deploy from source
 eval "${token_cmd} ${my_dir}/${resource}/project-tools.yaml" | oc apply -f -
 eval "${token_cmd} ${my_dir}/${resource}/process-service-binary-buildconfig.yaml" | oc -n ${namespace_tools} apply -f -
-eval "${token_cmd} ${my_dir}/${resource}/openjdk-imagestream.yaml" | oc -n ${application_image_namespace} apply -f -
 eval "${token_cmd} ${my_dir}/${resource}/process-service-imagestream.yaml" | oc -n ${namespace_tools} apply -f -
 eval "${token_cmd} ${my_dir}/${resource}/process-service-imagestream.yaml" | oc -n ${namespace} apply -f -
 eval "${token_cmd} ${my_dir}/${resource}/process-service-role-binding-jenkins-edit.yaml" | oc -n ${namespace} apply -f -
