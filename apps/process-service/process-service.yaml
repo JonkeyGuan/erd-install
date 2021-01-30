@@ -1,0 +1,126 @@
+---
+kind: List
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: {{ application_name }}
+      expose: "true"
+      monitoring: prometheus-actuator
+    name: {{ application_name }}
+  spec:
+    ports:
+      - name: http
+        port: 8080
+        protocol: TCP
+        targetPort: 8080
+    selector:
+      group: erd-services
+      app: {{ application_name }}
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: {{ application_name }}
+      app.kubernetes.io/part-of: bizservices
+    name: {{ application_name }}
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      group: erd-services
+      app: {{ application_name }}
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          group: erd-services
+          app: {{ application_name }}
+      spec:
+        containers:
+          - env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: GC_MAX_METASPACE_SIZE
+              value: '200'
+            - name: AB_JOLOKIA_OFF
+              value: "true"
+            - name: MAVEN_MIRROR_URL
+              value: {{ nexus_mirror }}
+            - name: JAVA_OPTIONS
+              value: '-Dkie.maven.settings.custom=/m2/settings.xml'
+            imagePullPolicy: IfNotPresent
+            name: {{ application_name }}
+            ports:
+              - containerPort: 8080
+                name: http
+                protocol: TCP
+            livenessProbe:
+              failureThreshold: 3
+              httpGet:
+                path: /actuator/health
+                port: 8080
+                scheme: HTTP
+              initialDelaySeconds: 60
+              periodSeconds: 30
+              timeoutSeconds: 3
+            readinessProbe:
+              failureThreshold: 3
+              httpGet:
+                path: /actuator/health
+                port: 8080
+                scheme: HTTP
+              initialDelaySeconds: 45
+              periodSeconds: 30
+              timeoutSeconds: 3
+            resources:
+              limits:
+                cpu: '{{ resources_limits_cpu }}'
+                memory: '{{ resources_limits_memory }}'
+              requests:
+                cpu: '{{ resources_requests_cpu }}'
+                memory: '{{ resources_requests_memory }}'
+            securityContext:
+              privileged: false
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+            volumeMounts:
+            - name: config
+              mountPath: /app/config
+            - mountPath: /app/logging
+              name: logging
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: {{ service_account }}
+        serviceAccountName: {{ service_account }}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - configMap:
+            name: {{ application_configmap }}
+          name: config
+        - configMap:
+            name: {{ logging_configmap }}
+          name: logging
+    triggers:
+      - type: ConfigChange
+      - imageChangeParams:
+          automatic: true
+          containerNames:
+            - {{ application_name }}
+          from:
+            kind: ImageStreamTag
+            name: "{{ application_name }}:{{ application_image_tag }}"
+            namespace: {{ namespace }}
+        type: ImageChange

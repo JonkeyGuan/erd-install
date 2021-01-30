@@ -1,0 +1,10 @@
+http:
+  port: 8080
+datasource:
+  minSize: 0
+  maxSize: 15
+  initialSize: 1
+  driverClassName: org.postgresql.Driver
+  jdbcUrl: jdbc:postgresql://{{ process_viewer_postgresql_host}}:{{ process_viewer_postgresql_port }}/{{ process_viewer_postgresql_database }}
+  principal: {{ process_viewer_postgresql_username }}
+  credential: {{ process_viewer_postgresql_password }}

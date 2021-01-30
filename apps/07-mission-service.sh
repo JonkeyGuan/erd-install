@@ -1,7 +1,7 @@
 #!/bin/bash
 
 my_dir="$(cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P)"
-resource="incident-service"
+resource="mission-service"
 source ${my_dir}/../utils.sh
 source ${my_dir}/../env.conf
 source ${my_dir}/${resource}/env.conf
@@ -12,8 +12,8 @@ token_cmd=$(getTokenCmd ${token_files})
 eval "${token_cmd} ${my_dir}/${resource}/project.yaml" | oc apply -f -
 
 # service a/c and rolebinding for ns view
-eval "${token_cmd} ${my_dir}/${resource}/incident-service-sa.yaml" | oc -n ${namespace} apply -f -
-eval "${token_cmd} ${my_dir}/${resource}/incident-service-role-binding-sa-view.yaml" | oc -n ${namespace} apply -f -
+eval "${token_cmd} ${my_dir}/${resource}/mission-service-sa.yaml" | oc -n ${namespace} apply -f -
+eval "${token_cmd} ${my_dir}/${resource}/mission-service-role-binding-sa-view.yaml" | oc -n ${namespace} apply -f -
 
 # application config map
 eval "${token_cmd} ${my_dir}/${resource}/application.properties" | cat > ${my_dir}/${resource}/application-impl.properties
@@ -36,15 +36,15 @@ oc -n ${namespace} create configmap ${logging_configmap} \
 
 # deploy from source
 eval "${token_cmd} ${my_dir}/${resource}/project-tools.yaml" | oc apply -f -
-eval "${token_cmd} ${my_dir}/${resource}/incident-service-binary-buildconfig.yaml" | oc -n ${namespace_tools} apply -f -
-eval "${token_cmd} ${my_dir}/${resource}/incident-service-imagestream.yaml" | oc -n ${namespace_tools} apply -f -
-eval "${token_cmd} ${my_dir}/${resource}/incident-service-imagestream.yaml" | oc -n ${namespace} apply -f -
-eval "${token_cmd} ${my_dir}/${resource}/incident-service-role-binding-jenkins-edit.yaml" | oc -n ${namespace} apply -f -
+eval "${token_cmd} ${my_dir}/${resource}/mission-service-binary-buildconfig.yaml" | oc -n ${namespace_tools} apply -f -
+eval "${token_cmd} ${my_dir}/${resource}/mission-service-imagestream.yaml" | oc -n ${namespace_tools} apply -f -
+eval "${token_cmd} ${my_dir}/${resource}/mission-service-imagestream.yaml" | oc -n ${namespace} apply -f -
+eval "${token_cmd} ${my_dir}/${resource}/mission-service-role-binding-jenkins-edit.yaml" | oc -n ${namespace} apply -f -
 
 github_secret=$(getRandomAscii 32)
 token_cmd=$(addTokenCmd "${token_cmd}" "github_secret" "${github_secret}")
 generic_secret=$(getRandomAscii 32)
 token_cmd=$(addTokenCmd "${token_cmd}" "generic_secret" "${generic_secret}")
-eval "${token_cmd} ${my_dir}/${resource}/incident-service-pipeline.yaml" | oc -n ${namespace_tools} apply -f -
+eval "${token_cmd} ${my_dir}/${resource}/mission-service-pipeline.yaml" | oc -n ${namespace_tools} apply -f -
 
-eval "${token_cmd} ${my_dir}/${resource}/incident-service.yaml" | oc -n ${namespace} apply -f -
+eval "${token_cmd} ${my_dir}/${resource}/mission-service.yaml" | oc -n ${namespace} apply -f -
