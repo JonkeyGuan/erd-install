@@ -10,8 +10,8 @@ spec:
   strategy:
     jenkinsPipelineStrategy:
       jenkinsfile: |-
-        def git_repo = "{{ process_service_git_repo }}"
-        def git_branch = "{{ process_service_git_branch }}"
+        def git_repo = "{{ disaster_simulator_service_git_repo }}"
+        def git_branch = "{{ disaster_simulator_service_git_branch }}"
         def version = ""
         def groupId = ""
         def artifactId = ""
@@ -49,15 +49,9 @@ spec:
           }
 
           stage ('Build Image') {
-            sh "mkdir deployFiles && cp -r target/repository deployFiles && cp target/${artifactId}-${version}.jar deployFiles/${artifactId}-${version}.jar"
-            sh "cp /home/jenkins/.m2/settings.xml deployFiles/"
-            def xml="<localRepository>/deployments/repository</localRepository>"
-            sh "sed -i 's|<proxies>||' deployFiles/settings.xml"
-            sh "sed -i 's|</proxies>||' deployFiles/settings.xml"
-            sh "sed -i 's|<!-- ### configured http proxy ### -->|${xml}|' deployFiles/settings.xml"
             openshift.withCluster() { // Use "default" cluster or fallback to OpenShift cluster detection
               def bc = openshift.selector("bc", "${app_build}")
-              def builds = bc.startBuild("--from-file=deployFiles")
+              def builds = bc.startBuild("--from-file=target/${artifactId}-${version}.jar")
               timeout (15) {
                 builds.watch {
                   if ( it.count() == 0 ) {
@@ -82,7 +76,7 @@ spec:
                 openshift.tag("${namespace_jenkins}/${app_imagestream}:latest", "${namespace_jenkins}/${app_imagestream}:${commitId}")
                 openshift.tag("${namespace_app}/${app_imagestream}:latest", "${namespace_app}/${app_imagestream}:${commitId}")
                 def dc_app = openshift.selector("dc", "${app_name}")
-                timeout (10) {
+                timeout (5) {
                   dc_app.untilEach(1) {
                     return it.object().status.readyReplicas == 1
                   }

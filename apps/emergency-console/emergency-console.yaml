@@ -1,0 +1,220 @@
+---
+kind: List
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: {{ application_name }}
+      expose: "true"
+    name: {{ application_name }}
+  spec:
+    ports:
+      - name: http
+        port: 8080
+        protocol: TCP
+        targetPort: 8080
+    selector:
+      app: {{ application_name }}
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    labels:
+      app: {{ application_name }}
+    name: {{ application_name }}
+  spec:
+    host: '{{ project_admin }}-{{ emergency_console_application_name }}.{{ ocp_domain }}'
+    port:
+      targetPort: 8080
+    to:
+      kind: Service
+      name: {{ application_name }}
+      weight: 100
+    tls:
+      termination: edge
+    wildcardPolicy: None
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: {{ application_name }}
+      app.kubernetes.io/part-of: webtier
+    name: {{ application_name }}
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      app: {{ application_name }}
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 3600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          app: {{ application_name }}
+      spec:
+        containers:
+          - env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: AUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: AUTH_URL
+                  name: {{ rhsso_config_configmap }}
+            - name: KEYCLOAK
+              valueFrom:
+                configMapKeyRef:
+                  key: KEYCLOAK
+                  name: {{ rhsso_config_configmap }}
+            - name: PUBLIC_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: PUBLIC_KEY
+                  name: {{ rhsso_config_configmap }}
+            - name: REALM
+              valueFrom:
+                configMapKeyRef:
+                  key: REALM
+                  name: {{ rhsso_config_configmap }}
+            - name: CLIENTID
+              valueFrom:
+                configMapKeyRef:
+                  key: CLIENTID
+                  name: {{ rhsso_config_configmap }}
+            - name: TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  key: TOKEN
+                  name: {{ emergency_console_config_configmap }}
+            - name: POLLING
+              valueFrom:
+                configMapKeyRef:
+                  key: POLLING
+                  name: {{ emergency_console_config_configmap }}
+            - name: KAFKA_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: KAFKA_HOST
+                  name: {{ emergency_console_config_configmap }}
+            - name: KAFKA_GROUP_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: KAFKA_GROUP_ID
+                  name: {{ emergency_console_config_configmap }}
+            - name: KAFKA_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  key: KAFKA_TOPIC
+                  name: {{ emergency_console_config_configmap }}
+            - name: INCIDENT
+              valueFrom:
+                configMapKeyRef:
+                  key: INCIDENT
+                  name: {{ emergency_console_config_configmap }}
+            - name: MISSION
+              valueFrom:
+                configMapKeyRef:
+                  key: MISSION
+                  name: {{ emergency_console_config_configmap }}
+            - name: PROCESS_VIEWER
+              valueFrom:
+                configMapKeyRef:
+                  key: PROCESS_VIEWER
+                  name: {{ emergency_console_config_configmap }}
+            - name: RESPONDER
+              valueFrom:
+                configMapKeyRef:
+                  key: RESPONDER
+                  name: {{ emergency_console_config_configmap }}
+            - name: RESPONDER_SIMULATOR
+              valueFrom:
+                configMapKeyRef:
+                  key: RESPONDER_SIMULATOR
+                  name: {{ emergency_console_config_configmap }}
+            - name: DISASTER_SIMULATOR
+              valueFrom:
+                configMapKeyRef:
+                  key: DISASTER_SIMULATOR
+                  name: {{ emergency_console_config_configmap }}
+            - name: DISASTER_SIMULATOR_ROUTE
+              valueFrom:
+                configMapKeyRef:
+                  key: DISASTER_SIMULATOR_ROUTE
+                  name: {{ emergency_console_config_configmap }}
+            - name: PRIORITY 
+              valueFrom:
+                configMapKeyRef:
+                  key: PRIORITY
+                  name: {{ emergency_console_config_configmap }}
+            - name: DISASTER 
+              valueFrom:
+                configMapKeyRef:
+                  key: DISASTER
+                  name: {{ emergency_console_config_configmap }}
+            imagePullPolicy: IfNotPresent
+            name: {{ application_name }}
+            ports:
+              - containerPort: 8080
+                name: http
+                protocol: TCP
+            livenessProbe:
+              failureThreshold: 3
+              httpGet:
+                path: /
+                port: 8080
+                scheme: HTTP
+              initialDelaySeconds: 30
+              periodSeconds: 30
+              timeoutSeconds: 3
+            readinessProbe:
+              failureThreshold: 3
+              httpGet:
+                path: /
+                port: 8080
+                scheme: HTTP
+              initialDelaySeconds: 30
+              periodSeconds: 30
+              timeoutSeconds: 3
+            resources:
+              limits:
+                cpu: '{{ resources_limits_cpu }}'
+                memory: '{{ resources_limits_memory }}'
+              requests:
+                cpu: '{{ resources_requests_cpu }}'
+                memory: '{{ resources_requests_memory }}'
+            securityContext:
+              privileged: false
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: {{ service_account }}
+        serviceAccountName: {{ service_account }}
+        terminationGracePeriodSeconds: 30
+    triggers:
+      - type: ConfigChange
+      - imageChangeParams:
+          automatic: true
+          containerNames:
+            - {{ application_name }}
+          from:
+            kind: ImageStreamTag
+            name: "{{ application_name }}:{{ application_image_tag }}"
+            namespace: {{ namespace }}
+        type: ImageChange
