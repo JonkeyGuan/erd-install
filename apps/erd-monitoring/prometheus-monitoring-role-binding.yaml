@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prometheus-monitoring
+  namespace: {{ namespace_services }}
+roleRef:
+  kind: ClusterRole
+  name: prometheus-monitoring
+  namespace: {{ namespace_services }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ prometheus_serviceaccount_name }}
+    namespace: {{ namespace_monitoring }}

@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    monitoring-key: {{ monitoring_label_value }}
+  name: {{ namespace }}
