@@ -20,7 +20,7 @@ function getTokenCmd {
 
       #value=${(trim "${item#*=}")}
       value=`eval echo '$'"$key"`
-      if [[ -z ${value} ]]; then continue; fi
+      #if [[ -z ${value} ]]; then continue; fi
 
       sedCmd+=" -e \"s/{{[[:space:]]*${key}[[:space:]]*}}/$(echo ${value} | sed -e 's/[\/&$]/\\&/g')/g\""
     done < $tokenFile
