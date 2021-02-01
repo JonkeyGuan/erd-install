@@ -9,7 +9,13 @@ source ${my_dir}/${resource}/env.conf
 token_files="${my_dir}/../*.conf ${my_dir}/${resource}/*.conf"
 token_cmd=$(getTokenCmd ${token_files})
 
-eval "${token_cmd} ${my_dir}/${resource}/project.yaml" | oc apply -f -
+if [ $(oc get ns | grep -w ${knative_eventing_namespace} | wc -l ) -eq 0 ]; then
+    eval "${token_cmd} ${my_dir}/${resource}/project-knative-eventing.yaml" | oc apply -f -
+fi
+
+if [ $(oc get ns | grep -w ${knative_serving_namespace} | wc -l ) -eq 0 ]; then
+    eval "${token_cmd} ${my_dir}/${resource}/project-knative-serving.yaml" | oc apply -f -
+fi
 
 # operator
 eval "${token_cmd} ${my_dir}/${resource}/subscription.yaml" | oc -n ${knative_operator_namespace} apply -f -

@@ -9,7 +9,9 @@ source ${my_dir}/${resource}/env.conf
 token_files="${my_dir}/../*.conf ${my_dir}/${resource}/*.conf"
 token_cmd=$(getTokenCmd ${token_files})
 
-eval "${token_cmd} ${my_dir}/jenkins/project.yaml" | oc apply -f -
+if [ $(oc get ns | grep -w ${namespace} | wc -l ) -eq 0 ]; then
+    eval "${token_cmd} ${my_dir}/${resource}/project.yaml" | oc apply -f -
+fi
 
 result=$(oc -n ${namespace} get secret ${pgadmin4_secret} 2>/dev/null| grep ${pgadmin4_secret} | wc -l)
 if [ ${result} -eq 1 ]; then 

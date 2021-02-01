@@ -9,13 +9,15 @@ source ${my_dir}/${resource}/env.conf
 token_files="${my_dir}/../*.conf ${my_dir}/${resource}/*.conf"
 token_cmd=$(getTokenCmd ${token_files})
 
-eval "${token_cmd} ${my_dir}/${resource}/project.yaml" | oc apply -f -
+if [ $(oc get ns | grep -w ${namespace} | wc -l ) -eq 0 ]; then
+    eval "${token_cmd} ${my_dir}/${resource}/project.yaml" | oc apply -f -
+fi
 
 # service a/c
 eval "${token_cmd} ${my_dir}/${resource}/emergency-console-sa.yaml" | oc -n ${namespace} apply -f -
 
 # application config map
-result=$(oc -n ${namespace} get configmap ${emergency_console_config_configmap} | grep ${emergency_console_config_configmap} | wc -l)
+result=$(oc -n ${namespace} get configmap | grep "${emergency_console_config_configmap} " | wc -l)
 if [ ${result} -eq 1 ]; then
     oc -n ${namespace} delete configmap ${emergency_console_config_configmap}
 fi

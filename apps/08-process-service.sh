@@ -10,10 +10,12 @@ token_files="${my_dir}/../*.conf ${my_dir}/${resource}/*.conf"
 token_cmd=$(getTokenCmd ${token_files})
 
 # postgresql for process service
-eval "${token_cmd} ${my_dir}/${resource}/project-postgresql.yaml" | oc apply -f -
+if [ $(oc get ns | grep -w ${process_service_postgresql_namespace} | wc -l ) -eq 0 ]; then
+    eval "${token_cmd} ${my_dir}/${resource}/project-postgresql.yaml" | oc apply -f -
+fi
 eval "${token_cmd} ${my_dir}/${resource}/postgresql-is.yaml" | oc -n ${process_service_postgresql_namespace} apply -f -
 
-result=$(oc -n ${process_service_postgresql_namespace} get configmap | grep ${process_service_postgresql_init_configmap} | wc -l)
+result=$(oc -n ${process_service_postgresql_namespace} get configmap | grep "${process_service_postgresql_init_configmap} " | wc -l)
 if [ ${result} -eq 1 ]; then
     oc -n ${process_service_postgresql_namespace} delete configmap ${process_service_postgresql_init_configmap}
 fi
@@ -22,7 +24,7 @@ oc -n ${process_service_postgresql_namespace} create configmap ${process_service
     --from-file=${my_dir}/${resource}/postgresql/
 rm ${my_dir}/${resource}/postgresql/*.sql
 
-result=$(oc -n ${process_service_postgresql_namespace} get configmap | grep ${process_service_postgresql_configmap} | wc -l)
+result=$(oc -n ${process_service_postgresql_namespace} get configmap | grep "${process_service_postgresql_configmap} " | wc -l)
 if [ ${result} -eq 1 ]; then
     oc -n ${process_service_postgresql_namespace} delete configmap ${process_service_postgresql_configmap}
 fi
@@ -57,7 +59,9 @@ done
 token_cmd=$(addTokenCmd "${token_cmd}" "kafka_connector_db_password" "${database_admin_password}")
 eval "${token_cmd} ${my_dir}/${resource}/kafka-connector.yaml" | oc -n ${namespace_kafka_cluster} apply -f -
 
-eval "${token_cmd} ${my_dir}/${resource}/project.yaml" | oc apply -f -
+if [ $(oc get ns | grep -w ${namespace} | wc -l ) -eq 0 ]; then
+    eval "${token_cmd} ${my_dir}/${resource}/project.yaml" | oc apply -f -
+fi
 
 # service a/c and rolebinding for ns view
 eval "${token_cmd} ${my_dir}/${resource}/process-service-sa.yaml" | oc -n ${namespace} apply -f -
@@ -66,7 +70,7 @@ eval "${token_cmd} ${my_dir}/${resource}/process-service-role-binding-sa-view.ya
 # application config map
 eval "${token_cmd} ${my_dir}/${resource}/application.properties" | cat > ${my_dir}/${resource}/application-impl.properties
 
-result=$(oc -n ${namespace} get configmap ${application_configmap} | grep ${application_configmap}| wc -l)
+result=$(oc -n ${namespace} get configmap | grep "${application_configmap} " | wc -l)
 if [ ${result} -eq 1 ]; then
     oc -n ${namespace} delete configmap ${application_configmap}
 fi
@@ -76,7 +80,7 @@ oc -n ${namespace} create configmap ${application_configmap} \
 rm ${my_dir}/${resource}/application-impl.properties
 
 # logging config map
-result=$(oc -n ${namespace} get configmap ${logging_configmap}  | grep ${logging_configmap} 2>/dev/null | wc -l)
+result=$(oc -n ${namespace} get configmap | grep "${logging_configmap} " | wc -l)
 if [ ${result} -eq 1 ]; then
     oc -n ${namespace} delete configmap ${logging_configmap}
 fi
@@ -84,7 +88,9 @@ oc -n ${namespace} create configmap ${logging_configmap} \
     --from-file=logback.xml=${my_dir}/${resource}/logback-dev.xml
 
 # deploy from source
-eval "${token_cmd} ${my_dir}/${resource}/project-tools.yaml" | oc apply -f -
+if [ $(oc get ns | grep -w ${namespace-tools} | wc -l ) -eq 0 ]; then
+    eval "${token_cmd} ${my_dir}/${resource}/project-tools.yaml" | oc apply -f -
+fi
 eval "${token_cmd} ${my_dir}/${resource}/process-service-binary-buildconfig.yaml" | oc -n ${namespace_tools} apply -f -
 eval "${token_cmd} ${my_dir}/${resource}/process-service-imagestream.yaml" | oc -n ${namespace_tools} apply -f -
 eval "${token_cmd} ${my_dir}/${resource}/process-service-imagestream.yaml" | oc -n ${namespace} apply -f -

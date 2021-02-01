@@ -9,7 +9,9 @@ source ${my_dir}/${resource}/env.conf
 token_files="${my_dir}/../*.conf ${my_dir}/${resource}/*.conf"
 token_cmd=$(getTokenCmd ${token_files})
 
-eval "${token_cmd} ${my_dir}/${resource}/project.yaml" | oc apply -f -
+if [ $(oc get ns | grep -w ${namespace} | wc -l ) -eq 0 ]; then
+    eval "${token_cmd} ${my_dir}/${resource}/project.yaml" | oc apply -f -
+fi
 
 incident_commander_role_id=$(getRandomAscii 32)
 token_cmd=$(addTokenCmd "${token_cmd}" "incident_commander_role_id" "${incident_commander_role_id}")
@@ -73,7 +75,7 @@ openssl pkey -inform der -outform pem -pubin -in ${work_dir}/key.der -out ${work
 public_key=$(cat ${work_dir}/key.pem | tr -d "\n" | sed 's/-----BEGIN PUBLIC KEY-----//' | sed 's/-----END PUBLIC KEY-----//' )
 rm ${work_dir}/*.bin ${work_dir}/*.der ${work_dir}/*.pem
 
-result=$(oc -n ${namespace} get configmap | grep ${sso_config_configmap} | wc -l)
+result=$(oc -n ${namespace} get configmap | grep "${sso_config_configmap} " | wc -l)
 if [ ${result} -eq 1 ]; then
     oc -n ${namespace} delete configmap ${sso_config_configmap}
 fi

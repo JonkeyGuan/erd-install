@@ -9,7 +9,9 @@ source ${my_dir}/${resource}/env.conf
 token_files="${my_dir}/../*.conf ${my_dir}/${resource}/*.conf"
 token_cmd=$(getTokenCmd ${token_files})
 
-eval "${token_cmd} ${my_dir}/jenkins/project.yaml" | oc apply -f -
+if [ $(oc get ns | grep -w ${namespace} | wc -l ) -eq 0 ]; then
+    eval "${token_cmd} ${my_dir}/${resource}/project.yaml" | oc apply -f -
+fi
 
 nexus_template=${my_dir}/${resource}/nexus2-persistent-template.yaml
 oc process -f ${nexus_template} \

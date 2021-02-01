@@ -9,7 +9,13 @@ source ${my_dir}/${resource}/env.conf
 token_files="${my_dir}/../*.conf ${my_dir}/${resource}/*.conf"
 token_cmd=$(getTokenCmd ${token_files})
 
-eval "${token_cmd} ${my_dir}/${resource}/project.yaml" | oc apply -f -
+if [ $(oc get ns | grep -w ${namespace_amq_streams_operator} | wc -l ) -eq 0 ]; then
+    eval "${token_cmd} ${my_dir}/${resource}/project-amq-streams-operator.yaml" | oc apply -f -
+fi
+
+if [ $(oc get ns | grep -w ${namespace_kafka_cluster} | wc -l ) -eq 0 ]; then
+    eval "${token_cmd} ${my_dir}/${resource}/project-kafka-cluster.yaml" | oc apply -f -
+fi
 
 eval "${token_cmd} ${my_dir}/${resource}/og.yaml" | oc -n ${namespace_amq_streams_operator} apply -f -
 

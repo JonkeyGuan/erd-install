@@ -1,0 +1,4 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ dw_application_service_account }}
