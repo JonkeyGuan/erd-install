@@ -73,6 +73,6 @@ generic_secret=$(getRandomAscii 32)
 token_cmd=$(addTokenCmd "${token_cmd}" "generic_secret" "${generic_secret}")
 eval "${token_cmd} ${my_dir}/${resource}/datawarehouse-pipeline.yaml" | oc -n ${namespace_tools} apply -f -
 
-eval "${token_cmd} ${my_dir}/${resource}/datawarehouse-service.yaml" | oc -n ${namespace} apply -f -
+#eval "${token_cmd} ${my_dir}/${resource}/datawarehouse-service.yaml" | oc -n ${namespace} apply -f -
 eval "${token_cmd} ${my_dir}/${resource}/kservice.yaml" | oc -n ${namespace} apply -f -
 eval "${token_cmd} ${my_dir}/${resource}/ksource.yaml" | oc -n ${namespace} apply -f -
