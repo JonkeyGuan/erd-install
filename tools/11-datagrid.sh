@@ -39,7 +39,7 @@ do
     if [ ${result} -eq 1 ]; then 
         break
     fi
-    echo 'Waiting for ${datagrid_application_name} is ready.'
+    echo "Waiting for ${datagrid_application_name} is ready."
     sleep 1
 done
 
