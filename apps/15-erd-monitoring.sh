@@ -19,7 +19,7 @@ eval "${token_cmd} ${my_dir}/${resource}/kafka-podmonitor.yaml" | oc -n ${namesp
 eval "${token_cmd} ${my_dir}/${resource}/emergency-response-application-servicemonitor.yaml" | oc -n ${namespace_monitoring} apply -f -
 eval "${token_cmd} ${my_dir}/${resource}/emergency-response-actuator-servicemonitor.yaml" | oc -n ${namespace_monitoring} apply -f -
 
-eval "${token_cmd} ${my_dir}/${resource}/incident-service-prometheus-rules.yaml" | oc -n ${namespace_monitoring} apply -f -
+eval "${token_cmd} ${my_dir}/${resource}/incident-priority-service-prometheus-rules.yaml" | oc -n ${namespace_monitoring} apply -f -
 
 eval "${token_cmd} ${my_dir}/${resource}/emergency-response-grafanadashboard.yaml" | oc -n ${namespace_monitoring} apply -f -
 

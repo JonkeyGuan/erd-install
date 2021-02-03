@@ -4,7 +4,7 @@ metadata:
   name: prometheus-monitoring
   namespace: {{ namespace_services }}
 roleRef:
-  kind: ClusterRole
+  kind: Role
   name: prometheus-monitoring
   namespace: {{ namespace_services }}
 subjects:
