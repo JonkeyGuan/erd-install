@@ -37,7 +37,6 @@ if [ ${result} -eq 1 ]; then
     database_admin_password=$(oc -n ${process_service_postgresql_namespace} get secret ${process_service_postgresql_credentials_secret} -o jsonpath='{.data.database-admin-password}' | base64 -d)
     oc -n ${process_service_postgresql_namespace} delete secret ${process_service_postgresql_credentials_secret}
 fi
-database_admin_password=$(getRandomAscii 12)
 oc -n ${process_service_postgresql_namespace} create secret generic ${process_service_postgresql_credentials_secret} \
     --from-literal=database-user=${process_service_postgresql_username} \
     --from-literal=database-password=${process_service_postgresql_password} \
