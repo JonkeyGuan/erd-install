@@ -28,7 +28,7 @@ done
 
 install_plan_name=$(oc -n ${namespace} get InstallPlan | grep datagrid | awk '{print $1}')
 clusterrole_name=$(oc -n ${namespace} get installplan ${install_plan_name} -o jsonpath='{.status.plan[?(@.resource.kind=="ClusterRole")].resource.name}')
-oc patch clusterrole ${clusterrole_name} --type json -p '[{"op":"remove", "path":"/rules/1"}]'
+#oc patch clusterrole ${clusterrole_name} --type json -p '[{"op":"remove", "path":"/rules/1"}]'
 
 eval "${token_cmd} ${my_dir}/${resource}/connect_secret.yaml" | oc -n ${namespace} apply -f -
 
